@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مدیریت ساختمان</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Vazir', 'Tahoma', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .info-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            flex: 1;
+            min-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .building-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            flex: 1;
+            min-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1, h2 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+            font-family: 'Vazir', 'Tahoma', sans-serif;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+        }
+
+        .btn-clear {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+        .btn-queue {
+            background: #FF9800;
+            color: white;
+        }
+
+        .btn-queue:hover {
+            background: #F57C00;
+            transform: translateY(-2px);
+        }
+
+        .btn-export {
+            background: #4CAF50;
+            color: white;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        .btn-export:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .building {
+            width: 100%;
+            max-width: 950px;
+            margin: 0 auto;
+        }
+
+        .floor {
+            background: linear-gradient(to bottom, #f5f5f5 0%, #e0e0e0 100%);
+            border: 3px solid white;
+            margin-bottom: 3px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            border-radius: 5px;
+        }
+
+        .floor-number {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            padding: 10px;
+            background: #764ba2;
+            color: white;
+            font-weight: bold;
+            border-radius: 3px 0 0 3px;
+            min-width: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .units {
+            display: flex;
+            flex: 1;
+            gap: 5px;
+            padding: 10px;
+        }
+
+        .unit {
+            flex: 1;
+            min-height: 60px;
+            background: white;
+            border: 2px solid #764ba2;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .unit:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.3);
+        }
+
+        .unit.occupied {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+        }
+
+        .unit.selected {
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            border-color: #b71c1c;
+        }
+
+        .unit.has-queue {
+            background: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            color: white;
+        }
+
+        .unit-label {
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .queue-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #f44336;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-bottom: 10px;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.9);
+        }
+
+        .unit:hover .tooltip {
+            opacity: 1;
+        }
+
+        .history {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 10px;
+            background: white;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border-right: 4px solid #764ba2;
+        }
+
+        .history-item strong {
+            color: #764ba2;
+        }
+
+        .queue-section {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3e0;
+            border-radius: 8px;
+            border: 2px solid #FF9800;
+        }
+
+        .queue-section h3 {
+            color: #F57C00;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .queue-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-right: 4px solid #FF9800;
+        }
+
+        .queue-item-info {
+            flex: 1;
+        }
+
+        .queue-item-number {
+            background: #FF9800;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .queue-item-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-queue-remove {
+            background: #f44336;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-queue-remove:hover {
+            background: #d32f2f;
+        }
+
+        .empty-queue {
+            text-align: center;
+            color: #666;
+            padding: 20px;
+            font-style: italic;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="info-panel">
+            <h2>اطلاعات واحد</h2>
+            
+            <div class="form-group">
+                <label>واحد انتخاب شده:</label>
+                <input type="text" id="selectedUnit" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>نام ساکن:</label>
+                <input type="text" id="residentName" placeholder="نام و نام خانوادگی">
+            </div>
+
+            <div class="form-group">
+                <label>تاریخ ورود:</label>
+                <input type="text" id="moveInDate" placeholder="مثال: 1403/09/10">
+            </div>
+
+            <div class="form-group">
+                <label>تاریخ خروج (اختیاری):</label>
+                <input type="text" id="moveOutDate" placeholder="مثال: 1404/01/15">
+            </div>
+
+            <div class="form-group">
+                <label>توضیحات:</label>
+                <textarea id="description" placeholder="توضیحات اضافی در مورد واحد یا ساکن..."></textarea>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-save" onclick="saveResident()">💾 ذخیره</button>
+                <button class="btn-queue" onclick="addToQueue()">📋 افزودن به رزرو</button>
+            </div>
+
+            <div class="btn-group">
+                <button class="btn-clear" onclick="clearCurrentResident()">🗑️ خالی کردن</button>
+            </div>
+
+            <button class="btn-export" onclick="exportToExcel()">📊 دریافت گزارش Excel</button>
+
+            <div class="queue-section" id="queueSection">
+                <h3>📋 لیست رزرو واحد</h3>
+                <div class="queue-list" id="queueList"></div>
+            </div>
+
+            <div class="history" id="history">
+                <h3 style="color: #764ba2; margin-bottom: 10px;">تاریخچه واحد</h3>
+                <p style="color: #666;">ابتدا یک واحد را انتخاب کنید.</p>
+            </div>
+        </div>
+
+        <div class="building-container">
+            <h1>🏢 ساختمان برج سفید</h1>
+            <div class="building" id="buildingFloors"></div>
+        </div>
+    </div>
+
+    <script>
+        var buildingData = {
+            10: [{id: '10', number: '10'}],
+            9: [{id: '9', number: '9'}],
+            8: [{id: '8', number: '8'}],
+            7: [{id: '7', number: '7'}],
+            6: [{id: '6', number: '6'}],
+            5: [{id: '5', number: '5'}],
+            4: [{id: '4', number: '4'}],
+            3: [{id: '3', number: '3'}],
+            2: [
+                {id: '2-south', number: 'جنوبی'},
+                {id: '2-north', number: 'شمالی'}
+            ],
+            1: [
+                {id: '1-south', number: 'جنوبی'},
+                {id: '1-north', number: 'شمالی'}
+            ]
+        };
+
+        var residents = JSON.parse(localStorage.getItem('residents')) || {};
+        var selectedUnitId = null;
+
+        function renderBuilding() {
+            var container = document.getElementById('buildingFloors');
+            container.innerHTML = '';
+
+            for (var floor = 10; floor >= 1; floor--) {
+                var floorDiv = document.createElement('div');
+                floorDiv.className = 'floor';
+
+                var floorNumber = document.createElement('div');
+                floorNumber.className = 'floor-number';
+                floorNumber.textContent = 'طبقه ' + floor;
+
+                var unitsDiv = document.createElement('div');
+                unitsDiv.className = 'units';
+
+                buildingData[floor].forEach(function(unit) {
+                    var unitDiv = document.createElement('div');
+                    unitDiv.className = 'unit';
+                    
+                    var resident = residents[unit.id] ? residents[unit.id].current : null;
+                    var queueLength = residents[unit.id] && residents[unit.id].queue ? residents[unit.id].queue.length : 0;
+                    
+                    if (resident && resident.name) {
+                        unitDiv.classList.add('occupied');
+                    }
+                    
+                    if (queueLength > 0 && (!resident || !resident.name)) {
+                        unitDiv.classList.add('has-queue');
+                    }
+                    
+                    if (unit.id === selectedUnitId) {
+                        unitDiv.classList.add('selected');
+                    }
+
+                    if (queueLength > 0) {
+                        var badge = document.createElement('div');
+                        badge.className = 'queue-badge';
+                        badge.textContent = queueLength;
+                        unitDiv.appendChild(badge);
+                    }
+
+                    var label = document.createElement('div');
+                    label.className = 'unit-label';
+                    label.textContent = 'واحد ' + unit.number;
+
+                    var tooltip = document.createElement('div');
+                    tooltip.className = 'tooltip';
+                    if (resident && resident.name) {
+                        var tooltipText = '👤 ساکن: ' + resident.name + '<br>';
+                        tooltipText += '📅 ورود: ' + resident.moveInDate + '<br>';
+                        if (resident.moveOutDate) {
+                            tooltipText += '🚪 خروج: ' + resident.moveOutDate;
+                        } else {
+                            tooltipText += '✅ ساکن فعلی';
+                        }
+                        if (queueLength > 0) {
+                            tooltipText += '<br>📋 رزرو: ' + queueLength + ' نفر';
+                        }
+                        tooltip.innerHTML = tooltipText;
+                    } else if (queueLength > 0) {
+                        tooltip.innerHTML = '📋 لیست رزرو: ' + queueLength + ' نفر در انتظار';
+                    } else {
+                        tooltip.textContent = 'واحد خالی';
+                    }
+
+                    unitDiv.appendChild(tooltip);
+                    unitDiv.appendChild(label);
+
+                    unitDiv.onclick = function() {
+                        selectUnit(unit.id, 'طبقه ' + floor + ' - واحد ' + unit.number);
+                    };
+
+                    unitsDiv.appendChild(unitDiv);
+                });
+
+                floorDiv.appendChild(floorNumber);
+                floorDiv.appendChild(unitsDiv);
+                container.appendChild(floorDiv);
+            }
+        }
+
+        function selectUnit(unitId, unitNumber) {
+            selectedUnitId = unitId;
+            document.getElementById('selectedUnit').value = unitNumber;
+
+            var resident = residents[unitId] ? residents[unitId].current : null;
+            if (resident) {
+                document.getElementById('residentName').value = resident.name || '';
+                document.getElementById('moveInDate').value = resident.moveInDate || '';
+                document.getElementById('moveOutDate').value = resident.moveOutDate || '';
+                document.getElementById('description').value = resident.description || '';
+            } else {
+                document.getElementById('residentName').value = '';
+                document.getElementById('moveInDate').value = '';
+                document.getElementById('moveOutDate').value = '';
+                document.getElementById('description').value = '';
+            }
+
+            showHistory(unitId);
+            showQueue(unitId);
+            renderBuilding();
+        }
+
+        function showQueue(unitId) {
+            var queueList = document.getElementById('queueList');
+            var queue = residents[unitId] && residents[unitId].queue ? residents[unitId].queue : [];
+
+            if (queue.length === 0) {
+                queueList.innerHTML = '<div class="empty-queue">هنوز کسی در لیست رزرو نیست</div>';
+                return;
+            }
+
+            var html = '';
+
+            for (var i = 0; i < queue.length; i++) {
+                var person = queue[i];
+                html += '<div class="queue-item">';
+                html += '<div class="queue-item-number">' + (i + 1) + '</div>';
+                html += '<div class="queue-item-info">';
+                html += '<strong>' + person.name + '</strong><br>';
+                html += '<small>📅 ثبت رزرو: ' + person.registrationDate + '</small><br>';
+                html += '<small>📥 ورود: ' + (person.moveInDate || 'ثبت نشده') + '</small><br>';
+                html += '<small>📤 خروج: ' + (person.moveOutDate || 'ثبت نشده') + '</small>';
+                if (person.description) {
+                    html += '<br><small>📝 ' + person.description + '</small>';
+                }
+                html += '</div>';
+                html += '<div class="queue-item-actions">';
+                html += '<button class="btn-queue-remove" onclick="removeFromQueue(\'' + unitId + '\', ' + i + ')">حذف</button>';
+                html += '</div>';
+                html += '</div>';
+            }
+
+            queueList.innerHTML = html;
+        }
+
+        function addToQueue() {
+            if (!selectedUnitId) {
+                alert('لطفاً ابتدا یک واحد را انتخاب کنید');
+                return;
+            }
+
+            var name = document.getElementById('residentName').value.trim();
+            var moveInDate = document.getElementById('moveInDate').value.trim();
+            var moveOutDate = document.getElementById('moveOutDate').value.trim();
+            var description = document.getElementById('description').value.trim();
+
+            if (!name) {
+                alert('لطفاً نام شخص را وارد کنید');
+                return;
+            }
+
+            if (!residents[selectedUnitId]) {
+                residents[selectedUnitId] = { current: {}, history: [], queue: [] };
+            }
+
+            var queueItem = {
+                name: name,
+                registrationDate: new Date().toLocaleDateString('fa-IR'),
+                moveInDate: moveInDate,
+                moveOutDate: moveOutDate,
+                description: description
+            };
+
+            residents[selectedUnitId].queue.push(queueItem);
+
+            localStorage.setItem('residents', JSON.stringify(residents));
+            alert('✅ ' + name + ' به لیست رزرو اضافه شد');
+
+            document.getElementById('residentName').value = '';
+            document.getElementById('moveInDate').value = '';
+            document.getElementById('moveOutDate').value = '';
+            document.getElementById('description').value = '';
+
+            renderBuilding();
+            showQueue(selectedUnitId);
+        }
+
+        function removeFromQueue(unitId, index) {
+            if (confirm('آیا از حذف این نفر از لیست رزرو مطمئن هستید؟')) {
+                residents[unitId].queue.splice(index, 1);
+                localStorage.setItem('residents', JSON.stringify(residents));
+                showQueue(unitId);
+                renderBuilding();
+            }
+        }
+
+        function saveResident() {
+            if (!selectedUnitId) {
+                alert('لطفاً ابتدا یک واحد را انتخاب کنید');
+                return;
+            }
+
+            var name = document.getElementById('residentName').value.trim();
+            var moveInDate = document.getElementById('moveInDate').value.trim();
+            var moveOutDate = document.getElementById('moveOutDate').value.trim();
+            var description = document.getElementById('description').value.trim();
+
+            if (!name || !moveInDate) {
+                alert('لطفاً نام ساکن و تاریخ ورود را وارد کنید');
+                return;
+            }
+
+            if (!residents[selectedUnitId]) {
+                residents[selectedUnitId] = { current: {}, history: [], queue: [] };
+            }
+
+            var currentResident = residents[selectedUnitId].current;
+
+            if (currentResident.name) {
+                if (currentResident.name !== name) {
+                    residents[selectedUnitId].history.push({
+                        name: currentResident.name,
+                        moveInDate: currentResident.moveInDate,
+                        moveOutDate: currentResident.moveOutDate,
+                        description: currentResident.description
+                    });
+                }
+            } else {
+                if (residents[selectedUnitId].queue && residents[selectedUnitId].queue.length > 0) {
+                    var firstInQueue = residents[selectedUnitId].queue.shift();
+                    alert('✅ نفر اول از لیست رزرو (' + firstInQueue.name + ') به تاریخچه منتقل شد');
+                }
+            }
+
+            residents[selectedUnitId].current = { 
+                name: name, 
+                moveInDate: moveInDate, 
+                moveOutDate: moveOutDate, 
+                description: description 
+            };
+
+            localStorage.setItem('residents', JSON.stringify(residents));
+            alert('✅ اطلاعات با موفقیت ذخیره شد');
+            renderBuilding();
+            showHistory(selectedUnitId);
+            showQueue(selectedUnitId);
+        }
+
+        function clearCurrentResident() {
+            if (!selectedUnitId) {
+                alert('لطفاً ابتدا یک واحد را انتخاب کنید');
+                return;
+            }
+
+            if (!residents[selectedUnitId] || !residents[selectedUnitId].current.name) {
+                alert('این واحد خالی است');
+                return;
+            }
+
+            if (confirm('آیا از خالی کردن این واحد مطمئن هستید؟')) {
+                if (!residents[selectedUnitId].current.moveOutDate) {
+                    var moveOutDate = prompt('تاریخ خروج را وارد کنید (مثال: 1404/09/10):');
+                    if (moveOutDate) {
+                        residents[selectedUnitId].current.moveOutDate = moveOutDate;
+                    }
+                }
+
+                residents[selectedUnitId].history.push({
+                    name: residents[selectedUnitId].current.name,
+                    moveInDate: residents[selectedUnitId].current.moveInDate,
+                    moveOutDate: residents[selectedUnitId].current.moveOutDate,
+                    description: residents[selectedUnitId].current.description
+                });
+                residents[selectedUnitId].current = {};
+
+                if (residents[selectedUnitId].queue && residents[selectedUnitId].queue.length > 0) {
+                    if (confirm('یک نفر در لیست رزرو است. آیا می‌خواهید نفر اول (' + residents[selectedUnitId].queue[0].name + ') به واحد منتقل شود؟')) {
+                        var nextResident = residents[selectedUnitId].queue.shift();
+                        document.getElementById('residentName').value = nextResident.name;
+                        document.getElementById('moveInDate').value = nextResident.moveInDate || new Date().toLocaleDateString('fa-IR');
+                        document.getElementById('moveOutDate').value = nextResident.moveOutDate || '';
+                        document.getElementById('description').value = nextResident.description || '';
+                        saveResident();
+                        return;
+                    }
+                }
+
+                document.getElementById('residentName').value = '';
+                document.getElementById('moveInDate').value = '';
+                document.getElementById('moveOutDate').value = '';
+                document.getElementById('description').value = '';
+
+                localStorage.setItem('residents', JSON.stringify(residents));
+                alert('✅ واحد خالی شد');
+                renderBuilding();
+                showHistory(selectedUnitId);
+                showQueue(selectedUnitId);
+            }
+        }
+
+        function showHistory(unitId) {
+            var historyDiv = document.getElementById('history');
+            var history = residents[unitId] && residents[unitId].history ? residents[unitId].history : [];
+
+            if (history.length === 0) {
+                historyDiv.innerHTML = '<h3 style="color: #764ba2; margin-bottom: 10px;">تاریخچه واحد</h3><p style="color: #666;">تاریخچه‌ای برای این واحد ثبت نشده است.</p>';
+                return;
+            }
+
+            var html = '<h3 style="color: #764ba2; margin-bottom: 10px;">تاریخچه واحد</h3>';
+            var reversedHistory = history.slice().reverse();
+            for (var i = 0; i < reversedHistory.length; i++) {
+                var record = reversedHistory[i];
+                html += '<div class="history-item">';
+                html += '<strong>ساکن ' + (history.length - i) + ':</strong> ' + record.name + '<br>';
+                html += '<strong>ورود:</strong> ' + record.moveInDate + '<br>';
+                html += '<strong>خروج:</strong> ' + (record.moveOutDate || 'ثبت نشده') + '<br>';
+                if (record.description) {
+                    html += '<strong>توضیحات:</strong> ' + record.description;
+                }
+                html += '</div>';
+            }
+
+            historyDiv.innerHTML = html;
+        }
+
+        function exportToExcel() {
+            var htmlContent = '<html xmlns:x="urn:schemas-microsoft-com:office:excel">';
+            htmlContent += '<head>';
+            htmlContent += '<meta http-equiv="content-type" content="application/vnd.ms-excel; charset=UTF-8">';
+            htmlContent += '<xml><x:ExcelWorkbook><x:ExcelWorksheets>';
+            
+            // Sheet 1
+            htmlContent += '<x:ExcelWorksheet><x:Name>وضعیت فعلی</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>';
+            
+            // Sheet 2
+            htmlContent += '<x:ExcelWorksheet><x:Name>تاریخچه</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>';
+            
+            // Sheet 3
+            htmlContent += '<x:ExcelWorksheet><x:Name>لیست رزرو</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>';
+            
+            htmlContent += '</x:ExcelWorksheets></x:ExcelWorkbook></xml>';
+            htmlContent += '</head><body>';
+
+            // Sheet 1: وضعیت فعلی
+            htmlContent += '<table border="1">';
+            htmlContent += '<tr><th colspan="7" style="background-color: #764ba2; color: white; font-size: 16px; padding: 10px;">وضعیت فعلی واحدها</th></tr>';
+            htmlContent += '<tr style="background-color: #667eea; color: white; font-weight: bold;">';
+            htmlContent += '<th>طبقه</th><th>واحد</th><th>ساکن فعلی</th><th>تاریخ ورود</th><th>تاریخ خروج</th><th>توضیحات</th><th>تعداد رزرو</th>';
+            htmlContent += '</tr>';
+
+            for (var floor = 10; floor >= 1; floor--) {
+                var units = buildingData[floor];
+                for (var j = 0; j < units.length; j++) {
+                    var unit = units[j];
+                    var resident = residents[unit.id] && residents[unit.id].current ? residents[unit.id].current : null;
+                    var queueLength = residents[unit.id] && residents[unit.id].queue ? residents[unit.id].queue.length : 0;
+                    
+                    htmlContent += '<tr>';
+                    htmlContent += '<td>' + floor + '</td>';
+                    htmlContent += '<td>' + unit.number + '</td>';
+                    htmlContent += '<td>' + (resident && resident.name ? resident.name : 'خالی') + '</td>';
+                    htmlContent += '<td>' + (resident && resident.moveInDate ? resident.moveInDate : '-') + '</td>';
+                    htmlContent += '<td>' + (resident && resident.moveOutDate ? resident.moveOutDate : '-') + '</td>';
+                    htmlContent += '<td>' + (resident && resident.description ? resident.description : '-') + '</td>';
+                    htmlContent += '<td>' + queueLength + '</td>';
+                    htmlContent += '</tr>';
+                }
+            }
+            htmlContent += '</table><br><br>';
+
+            // Sheet 2: تاریخچه
+            htmlContent += '<table border="1">';
+            htmlContent += '<tr><th colspan="7" style="background-color: #764ba2; color: white; font-size: 16px; padding: 10px;">تاریخچه کامل</th></tr>';
+            htmlContent += '<tr style="background-color: #667eea; color: white; font-weight: bold;">';
+            htmlContent += '<th>طبقه</th><th>واحد</th><th>ساکن</th><th>تاریخ ورود</th><th>تاریخ خروج</th><th>توضیحات</th><th>وضعیت</th>';
+            htmlContent += '</tr>';
+
+            for (var floor = 10; floor >= 1; floor--) {
+                var units = buildingData[floor];
+                for (var j = 0; j < units.length; j++) {
+                    var unit = units[j];
+                    var unitData = residents[unit.id];
+                    
+                    if (unitData) {
+                        if (unitData.current && unitData.current.name) {
+                            htmlContent += '<tr style="background-color: #E8F5E9;">';
+                            htmlContent += '<td>' + floor + '</td>';
+                            htmlContent += '<td>' + unit.number + '</td>';
+                            htmlContent += '<td>' + unitData.current.name + '</td>';
+                            htmlContent += '<td>' + (unitData.current.moveInDate || '-') + '</td>';
+                            htmlContent += '<td>' + (unitData.current.moveOutDate || '-') + '</td>';
+                            htmlContent += '<td>' + (unitData.current.description || '-') + '</td>';
+                            htmlContent += '<td>ساکن فعلی</td>';
+                            htmlContent += '</tr>';
+                        }
+                        
+                        if (unitData.history && unitData.history.length > 0) {
+                            for (var k = 0; k < unitData.history.length; k++) {
+                                var record = unitData.history[k];
+                                htmlContent += '<tr>';
+                                htmlContent += '<td>' + floor + '</td>';
+                                htmlContent += '<td>' + unit.number + '</td>';
+                                htmlContent += '<td>' + (record.name || '-') + '</td>';
+                                htmlContent += '<td>' + (record.moveInDate || '-') + '</td>';
+                                htmlContent += '<td>' + (record.moveOutDate || '-') + '</td>';
+                                htmlContent += '<td>' + (record.description || '-') + '</td>';
+                                htmlContent += '<td>ساکن قبلی</td>';
+                                htmlContent += '</tr>';
+                            }
+                        }
+                    }
+                }
+            }
+            htmlContent += '</table><br><br>';
+
+            // Sheet 3: لیست رزرو
+            htmlContent += '<table border="1">';
+            htmlContent += '<tr><th colspan="8" style="background-color: #FF9800; color: white; font-size: 16px; padding: 10px;">لیست رزرو</th></tr>';
+            htmlContent += '<tr style="background-color: #FFB74D; color: white; font-weight: bold;">';
+            htmlContent += '<th>طبقه</th><th>واحد</th><th>نام</th><th>تاریخ ثبت</th><th>تاریخ ورود</th><th>تاریخ خروج</th><th>توضیحات</th><th>رتبه</th>';
+            htmlContent += '</tr>';
+
+            for (var floor = 10; floor >= 1; floor--) {
+                var units = buildingData[floor];
+                for (var j = 0; j < units.length; j++) {
+                    var unit = units[j];
+                    var queue = residents[unit.id] && residents[unit.id].queue ? residents[unit.id].queue : [];
+                    
+                    for (var k = 0; k < queue.length; k++) {
+                        var person = queue[k];
+                        htmlContent += '<tr>';
+                        htmlContent += '<td>' + floor + '</td>';
+                        htmlContent += '<td>' + unit.number + '</td>';
+                        htmlContent += '<td>' + person.name + '</td>';
+                        htmlContent += '<td>' + (person.registrationDate || '-') + '</td>';
+                        htmlContent += '<td>' + (person.moveInDate || '-') + '</td>';
+                        htmlContent += '<td>' + (person.moveOutDate || '-') + '</td>';
+                        htmlContent += '<td>' + (person.description || '-') + '</td>';
+                        htmlContent += '<td>' + (k + 1) + '</td>';
+                        htmlContent += '</tr>';
+                    }
+                }
+            }
+            htmlContent += '</table>';
+
+            htmlContent += '</body></html>';
+
+            var blob = new Blob(['\ufeff', htmlContent], {
+                type: 'application/vnd.ms-excel'
+            });
+
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            
+            var today = new Date();
+            var jalaliDate = today.toLocaleDateString('fa-IR').replace(/\//g, '-');
+            link.download = 'گزارش_ساختمان_برج_سفید_' + jalaliDate + '.xls';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            alert('✅ فایل Excel با موفقیت دانلود شد!\n\n💡 فایل شامل 3 شیت است:\n📊 وضعیت فعلی\n📜 تاریخچه\n📋 لیست رزرو');
+        }
+
+        renderBuilding();
+    </script>
+</body>
+</html>
